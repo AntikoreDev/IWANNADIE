@@ -7,6 +7,9 @@ __pycache__/
 # C extensions
 *.so
 
+# IWANNADIE extensions
+*.iwd
+
 # Distribution / packaging
 .Python
 build/

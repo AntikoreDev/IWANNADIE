@@ -1,2 +1,2 @@
 # IWANNADIE
- Weird esolang made in python
+Weird esolang made in python
