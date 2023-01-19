@@ -1,243 +1,331 @@
 #!/usr/bin/env python3
 
+import sys, os, random, math, time
+
 """
-IWANNADIE Language Interpreter
+IWANNADIE Language Interpreter v2
 I already know this is by far the worst interpreter for a language in the world
                                                                - Antikore, 2021
-Update 1: In case isn't obvious, or is not the same as and
-Update 1.1: Fixed issues and bugs
-
-Created in 3 days
+Created in 3 days (originally)
 Usage: ./iwannadie.py <file>
 Made using Python 3.9.5
 """
 
-import sys, re, base64, random, math
+program = None
 
-excepted = False
-ln = 0
-current_line = ""
+# Main initialization
+def run():
+	global program
 
-def Start():
-	file = None
-	vlist, markers, filename = {}, {}, sys.argv[1]
+	arg = sys.argv[1] if len(sys.argv) > 1 else None
 
-	try:
-		file = open(filename, mode = 'r', encoding = 'utf-8')
-	except:
-		sys.exit(0)
+	if (arg != None):
+		f = open(arg, mode = "r", encoding = "utf-8")
+		lines = f.read().splitlines()
+		f.close()
 
-	if file == None or not filename.endswith(".iwd"):
-		sys.exit(0)
-
-	ln, current_line, excepted = 0, "", False
-	code = file.readlines()
-	file.close()
-	
-	if (code[-1] != "die"): sys.exit(0)
-
-	ExecuteCode()
-
-# Execute all the code
-def ExecuteCode():
-	global ln, current_line, code
-	PreInterpret()
-	while ln < len(code):
-		line = code[ln]
-		formatted = FormatLine(line)
-		if formatted.strip() != "" and not formatted.strip().startswith("@"):
-			current_line = formatted.strip()
-			ReadCommand(formatted)		
-		ln += 1
-
-# Find markers
-def PreInterpret():
-	global markers, ln, code
-	while ln < len(code):
-		line = code[ln]
-		formatted = FormatLine(line)
-		if formatted.strip() != "" and formatted.strip().startswith("@"):
-			markers.update({formatted.strip()[1:]: ln})
-		ln += 1
-	ln = 0
-
-# Format a line, to remove extra whiespaces or tabs, and comments
-def FormatLine(line):
-	xline = line.rstrip("\n ").strip()
-	parsed = xline
-	m = re.search(r"\"(.+?)\"", parsed)
-	if m:
-		parsed = parsed.replace(m.group(0), "")
-	m = re.search(r"-- (.+?)+", parsed)
-	if m:
-		return xline.replace(m.group(0), "")
-	return xline
-
-# Read a command, checking the name and arguments
-def ReadCommand(command):
-	name = ""
-	for c in command:
-		if c != " ":
-			name = name + c
-		else:
-			arguments = command.replace(name+" ", "",1)
-			return InterpretCommand(name, arguments)
-	return InterpretCommand(name, [])
-
-# Interpret the comand to find subcommands and strings
-def InterpretCommand(name, arguments):
-	args, current, counter = [], "", ""
-	for c in arguments:
-		if c != "," or counter != "":
-			if (c == "["):
-				if ((len(counter) > 0 and counter[-1] != "\"") or len(counter) == 0):
-					counter = counter + c
-			elif (c == "]"):
-				if (len(counter) > 0 and counter[-1] == "["):
-					counter = counter[:-1]
-			elif (c == "\""):
-				if (len(counter) > 0 and counter[-1] == "\""):
-					counter = counter[:-1]
-				else:
-					counter = counter + c
-			current = current + c
-		else:
-			value = InterpretExpression(current)
-			args.append(value)
-			current = ""
-	if (current != ""):
-		value = InterpretExpression(current)
-		args.append(value)
-		current = ""
-	if (counter != ""):
-		CatchError(4)
-	return ExecuteCommand(name, args)
-	
-# Execute the command (Yeah, ifelseifelseifelseifelse)
-def ExecuteCommand(name, args):
-	global vlist, markers, ln
-	if (name == "print"):
-		print(args[0])
-		return None
-	if (name == "set"):
-		if isinstance(args[0], str):
-			vlist.update({args[0]: args[1]})
-		else:
-			CatchError(5)
-	try:
-		if (name == "add"):
-			if args[1] == 0:
-				if isinstance(args[0], str):
-					return vlist.get(args[0])
-				else:
-					return args[1]
-			else:
-				if isinstance(args[0], str):
-					current = vlist.get(args[0])
-					vlist.update({args[0]: current + args[1]})
-					return current + args[1]
-				else:
-					return args[0] + args[1]
-		if (name == "mul"):
-			if isinstance(args[0], str):
-				current = vlist.get(args[0])
-				vlist.update({args[0]: current * args[1]})
-				return current * args[1]
-			else:
-				return args[0] * args[1]
-		if (name == "div"):
-			if isinstance(args[0], str):
-				current = vlist.get(args[0])
-				vlist.update({args[0]: current / args[1]})
-				return current / args[1]
-			else:
-				return args[0] / args[1]
-		if (name == "mod"):
-			if isinstance(args[0], str):
-				current = vlist.get(args[0])
-				vlist.update({args[0]: current % args[1]})
-				return current % args[1]
-			else:
-				return args[0] % args[1]
-	except KeyError:
-		CatchError(3)
-	except TypeError:
-		CatchError(1)
-	if (name == "goto"):
-		destination = markers.get(args[0])
-		if destination == None: CatchError(6) 
-		ln = destination
-	if (name == "goif"): 
-		if args[1]: ln = markers.get(args[0])
-	if (name == "doif"): 
-		if not args[0]: ln += 1 
-	if (name == "comp" or name == "compare"): return args[0] > args[1]
-	if (name == "check"):  return args[0] == args[1]
-	if (name == "die"):    Exit()
-	if (name == "input"):  return input(args[0])
-	if (name == "and"):    return args[0] and args[1]
-	if (name == "or"):     return args[0] or args[1]
-	if (name == "not"):    return not args[0]
-	if (name == "len"):    return len(args[0])
-	if (name == "random"): return random.uniform(args[0], args[1])
-	if (name == "floor"):  return math.floor(args[0])
-	if (name == "round"):  return round(args[0])
-	if (name == "char"):   return args[0][args[1]]
-	if (name == "int"): 
-		try: return int(args[0]) 
-		except: return None
-	if (name == "text"):
-		try: return str(args[0]) + str(args[1])
-		except: CatchError(1)
-	return None
-
-# Interpet an expression, if its a variable, a subcommand, or an important value
-def InterpretExpression(exp):
-	exp = exp.strip()
-	if (exp.startswith("#")):
-		encoding = base64.b64encode(exp[1:].encode("utf-8"))
-		return str(encoding, "utf-8")
-	elif (exp.startswith("[") and exp.endswith("]")):
-		return ReadCommand(exp[1:-1])
-	elif (exp.startswith("\"") and exp.endswith("\"")):
-		return exp[1:-1]
-	elif (exp == "null"):
-		return None
-	elif (exp == "true"):
-		return True
-	elif (exp == "false"):
-		return False
+		program = Interpeter(arg, lines)
 	else:
-		try:
-			return float(exp)
-		except:
-			CatchError(2)
+		program = Interpeter(None, [])
+
+# Run the program
+class Interpeter():
+	lines = []
+	file = None
+	ln = 0
+	symbols = {}
+	tags = {}
+	lambdas = {}
+	multiline_comment = False
+
+	def __init__(self, f, lines):
+		global program
+
+		self.lines = lines
+		self.file = f
+		self.ln = 0
 		
-# Return an error if something failed
-def CatchError(error):
-	global ln, current_line, excepted
-	if (not excepted) and error != 0:
-		print("")
-		sentence = "Unexpected Error"
-		if (error == 1):   sentence = "Illegal operation"
-		elif (error == 2): sentence = "Unknown expression"
-		elif (error == 3): sentence = "I'm a teapot"
-		elif (error == 4): sentence = "He's guilty"
-		elif (error == 5): sentence = "Welcome to the dungeon"
-		elif (error == 6): sentence = "Illegal movement"
-		print("Error "+str(error)+": "+sentence)
-		print("At line "+str(ln + 1)+": '"+current_line+"'")
-	excepted = True
-	sys.exit(0)
+		program = self
 
-# Exit the program
-def Exit():
-	CatchError(0)
+		try:
 
-if (__name__ == '__main__'):
-	try:
-		Start()
-	except KeyboardInterrupt:
-		pass
-	except:
-		CatchError(-1)
+			# Search for tags if there is a file
+			if (self.file != None):
+				while self.ln < len(self.lines):
+					self.run(True)
+					self.ln += 1
+				self.ln = 0
+
+			while True:
+				if (self.file == None):
+					if (len(self.lines) <= self.ln):
+						command = input("> ").splitlines()
+						for c in command:
+							self.lines.append(c)
+					self.run()
+				else:
+					self.run()
+				self.ln += 1
+		except KeyboardInterrupt:
+			pass
+
+	def run(self, searchMarks = False):
+		line = self.lines[self.ln]
+		if (line.startswith("-[")):
+			if (not line.endswith("]-")):
+				self.multiline_comment = True
+		elif (line.endswith("]-") and self.multiline_comment):
+			self.multiline_comment = False
+		elif (line.startswith("@")):
+			self.tags.update({ line[1:]: self.ln })
+		elif (not (searchMarks or self.multiline_comment)):
+			cmd = Command(line)
+			cmd.run()
+		
+# This is a class that belongs to data of a command.
+class Command():
+	name = ""
+	args = []
+	def __init__(self, line):
+		parsed = self.parse(line.strip())
+
+		self.name = parsed[0]
+		self.args = parsed[1]
+
+	def parsesymbol(self, symbol):
+		try:
+			s = symbol.getvalue()
+			if (isinstance(s, Symbol)):
+				return s.get()
+		except:
+			return None
+		return s
+
+	def tostring(self, v):
+		if (isinstance(v, bool)):
+			return "true" if v else "false"
+		elif (v == None):
+			return "null"
+		else:
+			return v
+
+	def run(self):
+		global program
+
+		if (self.name == "print"):
+			print(self.tostring(self.parsesymbol(self.args[0])))
+		if (self.name == "input"):
+			return input(self.args[0].getvalue())
+		if (self.name == "set"):
+			self.args[0].getvalue().set(self.parsesymbol(self.args[1]))
+		if (self.name == "add"):
+			arg0 = self.args[0].getvalue()
+			arg1 = self.parsesymbol(self.args[1])
+			if (arg1 != 0):
+				if (isinstance(arg0, Symbol)):
+					op = arg0.get() + arg1
+					arg0.set(op)
+					return op
+				else:
+					return arg0 + arg1
+			else:
+				if (isinstance(arg0, Symbol)):
+					return arg0.get()
+				else:
+					return arg0
+		if (self.name == "mul"):
+			arg0 = self.args[0].getvalue()
+			if (isinstance(arg0, Symbol)):
+				op = arg0.get() * self.parsesymbol(self.args[1])
+				arg0.set(op)
+				return op
+			else:
+				return arg0 * self.parsesymbol(self.args[1])
+		if (self.name == "div"):
+			arg0 = self.args[0].getvalue()
+			if (isinstance(arg0, Symbol)):
+				op = arg0.get() / self.parsesymbol(self.args[1])
+				arg0.set(op)
+				return op
+			else:
+				return arg0 / self.parsesymbol(self.args[1])
+		if (self.name == "mod"):
+			arg0 = self.args[0].getvalue()
+			if (isinstance(arg0, Symbol)):
+				op = arg0.get() % self.parsesymbol(self.args[1])
+				arg0.set(op)
+				return op
+			else:
+				return arg0 % self.parsesymbol(self.args[1])
+		if (self.name == "time"):
+			return time.time()
+		if (self.name == "die"):
+			sys.exit(0)
+		if (self.name == "int"):
+			return int(self.parsesymbol(self.args[0]))
+		if (self.name == "floor"):
+			return math.floor(self.parsesymbol(self.args[0]))
+		if (self.name == "round"):
+			return round(self.parsesymbol(self.args[0]))
+		if (self.name == "text"):
+			return (str(self.parsesymbol(self.args[0])) + str(self.parsesymbol(self.args[1])))
+		if (self.name == "check"):
+			return (self.parsesymbol(self.args[0]) == self.parsesymbol(self.args[1]))
+		if (self.name == "not"):
+			return not self.parsesymbol(self.args[0])
+		if (self.name == "or"):
+			return self.parsesymbol(self.args[0]) or self.parsesymbol(self.args[1])
+		if (self.name == "and"):
+			return self.parsesymbol(self.args[0]) and self.parsesymbol(self.args[1])
+		if (self.name in ["comp", "compare"]):
+			return (self.parsesymbol(self.args[0]) > self.parsesymbol(self.args[1]))
+		if (self.name == "goto"):
+			program.ln = program.tags.get(self.parsesymbol(self.args[0]))
+		if (self.name == "goif"):
+			if (self.parsesymbol(self.args[1])):
+				program.ln = program.tags.get(self.parsesymbol(self.args[0]))
+		if (self.name == "doif"):
+			if (not self.parsesymbol(self.args[0])):
+				program.ln += 1
+		if (self.name in ["char", "at"]):
+			string = self.parsesymbol(self.args[0])
+			return string[self.parsesymbol(self.args[1])]
+		if (self.name in ["lambda", "fn"]):
+			program.lambdas.update({ self.parsesymbol(self.args[0]): self.args[1] })
+		if (self.name == "run"):
+			i = 0
+			for _ in self.args:
+				if (i > 0):
+					program.symbols.update({ "arg" + str(i - 1): self.parsesymbol(self.args[i]) })
+				i += 1
+			return program.lambdas.get(self.parsesymbol(self.args[0])).getvalue()
+		if (self.name == "random"):
+			return random.uniform(self.parsesymbol(self.args[0]), self.parsesymbol(self.args[1]))
+		if (self.name == "len"):
+			return len(self.parsesymbol(self.args[0]))
+		if (self.name == "clear"):
+			os.system('clear' if os.name == 'posix' else 'cls')
+		if (self.name.startswith("!")):
+			i = 0
+			for _ in self.args:
+				program.symbols.update({ "arg" + str(i): self.parsesymbol(self.args[i]) })
+				i += 1
+			return program.lambdas.get(self.name[1:]).getvalue()
+
+		return None
+
+	def parse(self, line):
+		string = False
+		cmdarg = 0
+		escape = False
+		name = ""
+		arg = ""
+		args = []
+
+		for c in line:
+			if (arg.endswith("--") and not string):
+				arg = arg.rstrip("--")
+				break
+
+			if (name == ""):
+				if (c == " "):
+					name = arg
+					arg = ""
+				else:
+					arg += c
+			else:
+				if (string):
+					if (not escape):
+						if (c == "\\"):
+							escape = True
+						elif (c == "\""):
+							string = False
+							arg += c
+						else:
+							arg += c
+					else:
+						escape = False
+						if (c == "n"):
+							arg += "\n"
+						elif (c == "r"):
+							arg += "\r"
+						elif (c == "t"):
+							arg += "\t"	
+						else:
+							arg += c
+				else:
+					if (cmdarg > 0):
+						if (c == "["):
+							cmdarg += 1
+							arg += c
+						elif (c == "]"):
+							cmdarg -= 1
+							if (cmdarg == 0):
+								arg = "[" + arg + "]"
+							else:
+								arg += c
+						else:
+							arg += c
+					else:
+						if (c != " "):
+							if (c == ","):
+								args.append(Item(arg))
+								arg = ""
+							elif (c == "["):
+								cmdarg += 1
+							elif (c == "]"):
+								cmdarg -= 1
+							elif (c == "\""):
+								arg += c
+								string = True
+							else:
+								arg += c
+		if (arg != ""):
+			if (name != ""):
+				args.append(Item(arg))
+			else:
+				name = arg
+	
+		return name, args
+
+class Item():
+	value = 0
+
+	def __init__(self, v):
+		self.value = v
+
+	def getvalue(self):
+		global program
+		if (self.value.startswith("#")):
+			return Symbol(self.value[1:])
+		if (self.value.startswith("[") and self.value.endswith("]")):
+			return Command(self.value[1:][:-1]).run()
+		if (self.value.startswith("\"") and self.value.endswith("\"")):
+			return self.value[1:][:-1]
+		elif (self.value == "true"):
+			return True
+		elif (self.value == "false"):
+			return False
+		elif (self.value == "null"):
+			return None
+		else:
+			return float(self.value)
+
+class Symbol():
+	name = ""
+
+	def __init__(self, name):
+		self.name = name
+	
+	def get(self):
+		global program
+		return program.symbols.get(self.name)
+	
+	def set(self, v):
+		global program
+		program.symbols.update({ self.name: v })
+		return program.symbols.get(self.name)
+
+# Run the program
+if (__name__ == "__main__"):
+	run()
