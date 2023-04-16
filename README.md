@@ -1,4 +1,10 @@
 # IWANNADIE
+<a href = "https://github.com/AntikoreDev/IWANNADIE" onClick = "return false"><img alt = "Repo size" src = "https://img.shields.io/github/repo-size/AntikoreDev/IWANNADIE"></a>
+<a href = "https://github.com/AntikoreDev/IWANNADIE/pulls"><img alt = "Pull Requests" src = "https://img.shields.io/github/issues-pr/AntikoreDev/IWANNADIE"></a>
+<a href = "https://github.com/AntikoreDev/IWANNADIE/graphs/contributors"><img alt = "Contributors" src = "https://img.shields.io/github/contributors/AntikoreDev/IWANNADIE"></a>
+<a href = "https://github.com/AntikoreDev/IWANNADIE/stargazers"><img alt = "Stars" src = "https://img.shields.io/github/stars/AntikoreDev/IWANNADIE"></a>
+<a href = "https://github.com/AntikoreDev/IWANNADIE/blob/main/LICENSE"><img alt = "License" src = "https://img.shields.io/github/license/AntikoreDev/IWANNADIE"></a>
+
 **IWANNADIE** is an esoteric language made by me. This repository holds the v2 of the language adding new and interesting features. Scripts made in this language use the extension `.iwd`
 
 This implemention could be named as IWANNADIE-23 or IWANNADIEEVENHARDER.
