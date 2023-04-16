@@ -173,6 +173,8 @@ class Command():
 				sys.exit(0)
 			if (self.name == "int"):
 				return int(self.parsesymbol(self.args[0]))
+			if (self.name == "real"):
+				return float(self.parsesymbol(self.args[0]))
 			if (self.name == "floor"):
 				return math.floor(self.parsesymbol(self.args[0]))
 			if (self.name == "round"):
