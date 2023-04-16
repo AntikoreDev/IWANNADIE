@@ -1,17 +1,18 @@
 # IWANNADIE
 **IWANNADIE** is an esoteric language made by me. This repository holds the v2 of the language adding new and interesting features. Scripts made in this language use the extension `.iwd`
 
+This implemention could be named as IWANNADIE-23 or IWANNADIEEVENHARDER.
 Original implementation from 2021 can be found here: IWANNADIE.py
 
 ## Examples
 
-### Hello, World!
+### [Hello, World!](https://esolangs.org/wiki/Hello,_world!)
 ```
 print "Hello, World!"
 die
 ```
 
-### Truth-Machine
+### [Truth-Machine](https://esolangs.org/wiki/Truth-machine)
 ```
 set #input, [input "Number >> "]
 goif "zero", [check [add #input, 0], "0"]
@@ -23,7 +24,7 @@ print "0"
 die
 ```
 
-### Factorial
+### [Factorial](https://esolangs.org/wiki/Factorial)
 ```
 set #num, 5
 set #org, [add #num, 0]
@@ -38,7 +39,7 @@ print [text [int [add #org, 0]], [text " is ", [int [add #res, 0]]]]
 die
 ```
 
-### FizzBuzz
+### [FizzBuzz](https://esolangs.org/wiki/FizzBuzz)
 ```
 set #counter, 0
 @counter
@@ -60,7 +61,7 @@ print "FizzBuzz"
 goif "counter", [not [check [add #counter, 0], 100]]
 die
 ```
-### 99 bottles of beer
+### [99 bottles of beer](https://esolangs.org/wiki/99_bottles_of_beer)
 ```
 set #bottles, 99
 @alot
@@ -81,3 +82,7 @@ print "Take one down, pass it around"
 print "No bottles of beer on the wall."
 die
 ```
+
+## Commands
+IWANNADIE scripts are constructed using concatenated commnads. This is the full list of usable commands
+
