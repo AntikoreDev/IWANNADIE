@@ -5,7 +5,10 @@
 <a href = "https://github.com/AntikoreDev/IWANNADIE/stargazers"><img alt = "Stars" src = "https://img.shields.io/github/stars/AntikoreDev/IWANNADIE"></a>
 <a href = "https://github.com/AntikoreDev/IWANNADIE/blob/main/LICENSE"><img alt = "License" src = "https://img.shields.io/github/license/AntikoreDev/IWANNADIE"></a>
 
+<img src="https://www.antikore.dev/img/iwd.png"  alt="IWANNADIE logo" style="float:right" width="128" height="128">
+
 **IWANNADIE** is an esoteric language made by me. This repository holds the v2 of the language adding new and interesting features. Scripts made in this language use the extension `.iwd`
+
 
 This implemention could be named as IWANNADIE-23 or IWANNADIEEVENHARDER.
 Original implementation from 2021 can be found here: IWANNADIE.py
@@ -123,5 +126,5 @@ IWANNADIE scripts are constructed using concatenated commnads. This is the full 
 |clear       |-|Clears the output|null|
 |die         |-|Kills the script and terminates execution|null|
 
-
-
+## Donations
+You can always support my work and effort by [buying me a coffee](https://ko-fi.com/antikore) 
