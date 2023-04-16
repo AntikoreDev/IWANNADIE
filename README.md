@@ -10,7 +10,7 @@
 **IWANNADIE** is an esoteric language made by me. This repository holds the v2 of the language adding new and interesting features. Scripts made in this language use the extension `.iwd`
 
 This implemention could be named as IWANNADIE-23 or IWANNADIEEVENHARDER.
-Original implementation from 2021 can be found here: IWANNADIE.py
+Original implementation from 2021 can be found here: [IWANNADIE.py](https://gist.github.com/AntikoreDev/c1452380e7bdfb0f4cd7f6d61b092e53)
 
 ## Examples
 
